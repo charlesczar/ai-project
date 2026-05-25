@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuthentiCheck</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--surface2:#f1f0eb;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#9b9a95;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+  --primary:#059669;--primary-light:#D1FAE5;--primary-dark:#047857;
+  --green:#0F6E56;--green-light:#E1F5EE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --teal:#1D9E75;--orange:#EF9F27;--cobalt:#378ADD;--coral:#E24B4A;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;}
+.app{display:flex;min-height:100vh;}
+
+/* Sidebar */
+.sidebar{width:200px;flex-shrink:0;background:var(--surface);border-right:0.5px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;}
+.logo{font-size:16px;font-weight:600;padding:4px 8px 16px;}
+.logo span{color:var(--primary);}
+.nav{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);font-size:13px;color:var(--text2);cursor:pointer;transition:background .15s;border:none;background:transparent;width:100%;text-align:left;font-family:inherit;}
+.nav:hover{background:var(--surface2);}
+.nav.active{background:var(--primary-light);color:var(--primary-dark);font-weight:500;}
+.nav i{font-size:17px;}
+.sidebar-divider{height:0.5px;background:var(--border);margin:8px 0;}
+.sidebar-section{font-size:11px;color:var(--text3);padding:4px 10px;text-transform:uppercase;letter-spacing:.05em;}
+
+/* Main */
+.main{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.page{display:none;flex-direction:column;gap:14px;}
+.page.active{display:flex;}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.page-title{font-size:18px;font-weight:600;}
+.page-sub{font-size:13px;color:var(--text2);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);font-size:13px;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-outline{background:transparent;color:var(--text2);border:0.5px solid var(--border2);}
+.btn-outline:hover{background:var(--surface2);}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-danger{background:var(--red-light);color:var(--red);border:0.5px solid rgba(162,45,45,0.2);}
+.btn-danger:hover{background:#f7c1c1;}
+
+/* Cards */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.metric{background:var(--surface2);border-radius:var(--radius);padding:12px 14px;cursor:pointer;border:1.5px solid transparent;transition:border-color .15s;}
+.metric:hover{border-color:var(--border2);}
+.metric.selected{border-color:var(--primary);}
+.metric-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.metric-val{font-size:22px;font-weight:600;}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+
+/* Badges */
+.badge{font-size:11px;padding:2px 9px;border-radius:100px;font-weight:500;white-space:nowrap;}
+.badge.auth{background:var(--green-light);color:var(--green);}
+.badge.liv{background:var(--amber-light);color:var(--amber);}
+.badge.irr{background:var(--blue-light);color:var(--blue);}
+.badge.dec{background:var(--red-light);color:var(--red);}
+
+/* Pills */
+.pill{font-size:11px;padding:2px 9px;border-radius:100px;}
+.pill.pos{background:#EAF3DE;color:#27500A;}
+.pill.neu{background:#F1EFE8;color:#5F5E5A;}
+.pill.neg{background:var(--red-light);color:var(--red);}
+
+/* Filter tabs */
+.filter-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.ftab{padding:5px 12px;border-radius:100px;font-size:12px;cursor:pointer;border:0.5px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;transition:all .15s;}
+.ftab:hover{background:var(--surface2);}
+.ftab.active{background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary);font-weight:500;}
+
+/* Review rows */
+.review-list{display:flex;flex-direction:column;gap:7px;}
+.rev{border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:background .12s;}
+.rev:hover{background:var(--surface2);}
+.rev.selected{border-color:var(--primary);background:var(--primary-light);}
+.rev-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;gap:8px;}
+.rev-text{font-size:12px;color:var(--text2);line-height:1.5;}
+.rev-note{font-size:11px;margin-top:4px;color:var(--text3);}
+.stars{color:#BA7517;letter-spacing:-1px;}
+
+/* Bars */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;}
+.bar-label{width:72px;color:var(--text2);}
+.bar-track{flex:1;height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s;}
+.bar-count{width:30px;text-align:right;color:var(--text3);font-size:11px;}
+
+/* Detail rows */
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{color:var(--text2);}
+.chip{font-size:11px;padding:2px 9px;border-radius:100px;background:var(--surface2);color:var(--text2);}
+
+/* ABSA */
+.absa-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;transition:background .1s;border-radius:4px;}
+.absa-row:last-child{border-bottom:none;}
+.absa-row:hover{background:var(--surface2);padding-left:6px;}
+.pills{display:flex;gap:5px;}
+
+/* Upload */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:28px;text-align:center;color:var(--text3);cursor:pointer;transition:all .15s;}
+.upload-zone:hover{background:var(--surface2);border-color:var(--primary);}
+.upload-zone.dragover{background:var(--primary-light);border-color:var(--primary);}
+
+/* Image preview grid */
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;}
+.img-thumb-wrap{position:relative;}
+.img-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius);border:0.5px solid var(--border);}
+.img-remove{position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.img-placeholder{width:100%;aspect-ratio:1;background:var(--surface2);border-radius:var(--radius);border:0.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;flex-direction:column;gap:4px;cursor:pointer;}
+.img-placeholder i{font-size:22px;}
+
+/* Progress */
+.progress-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.prog-step{font-size:11px;padding:4px 10px;border-radius:100px;background:var(--surface2);color:var(--text3);}
+.prog-step.done{background:var(--green-light);color:var(--green);}
+.prog-step.active{background:var(--primary-light);color:var(--primary-dark);font-weight:500;}
+.prog-arrow{font-size:12px;color:var(--text3);}
+
+/* Grid layouts */
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--primary);color:#fff;padding:10px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* Product row */
+.product-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius);font-size:13px;color:var(--text2);}
+.product-row i{font-size:17px;color:var(--primary);}
+
+/* Textarea / Input */
+textarea,input[type=text]{width:100%;padding:9px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-family:inherit;resize:vertical;}
+textarea:focus,input[type=text]:focus{outline:2px solid var(--primary);outline-offset:1px;}
+select{padding:7px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:inherit;cursor:pointer;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* Section label */
+.section-label{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+
+/* Responsive */
+@media(max-width:680px){
+  .sidebar{display:none;}
+  .metrics{grid-template-columns:repeat(2,1fr);}
+  .cols-2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">Authenti<span>Check</span></div>
+  <button class="nav active" onclick="goPage('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+  <button class="nav" onclick="goPage('upload')" id="nav-upload"><i class="ti ti-upload"></i> Upload reviews</button>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">Analysis</div>
+  <button class="nav" onclick="goPage('classify')" id="nav-classify"><i class="ti ti-shield-check"></i> Classification</button>
+  <button class="nav" onclick="goPage('sentiment')" id="nav-sentiment"><i class="ti ti-chart-bar"></i> Sentiment (ABSA)</button>
+  <div class="sidebar-divider"></div>
+  <button class="nav" onclick="goPage('settings')" id="nav-settings"><i class="ti ti-settings"></i> Settings</button>
+</div>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Logitech MX Master 3S Wireless Mouse — 3,842 reviews</div>
+      </div>
+      <button class="btn btn-primary" onclick="goPage('upload')"><i class="ti ti-upload"></i> Upload CSV</button>
+    </div>
+
+    <div class="product-row">
+      <i class="ti ti-shopping-bag"></i>
+      <span>Product:</span>
+      <strong>Logitech MX Master 3S Wireless Mouse</strong>
+      <span>&middot;</span><span>Shopee &amp; Lazada</span>
+      <span>&middot;</span><span>3,842 reviews loaded</span>
+    </div>
+
+    <div class="progress-row">
+      <span class="prog-step done"><i class="ti ti-check" style="font-size:11px"></i> Data ingestion</span>
+      <span class="prog-arrow">&rsaquo;</span>
+      <span class="prog-step done"><i class="ti ti-check" style="font-size:11px"></i> Preprocessing</span>
+      <span class="prog-arrow">&rsaquo;</span>
+      <span class="prog-step done"><i class="ti ti-check" style="font-size:11px"></i> Stage 1 complete</span>
+      <span class="prog-arrow">&rsaquo;</span>
+      <span class="prog-step active">Stage 2 running&hellip;</span>
+    </div>
+
+    <div class="metrics" id="dash-metrics">
+      <div class="metric" onclick="filterDash('auth',this)">
+        <div class="metric-label">Authentic</div>
+        <div class="metric-val" style="color:var(--green)">2,104</div>
+        <div class="metric-sub">54.8% of total</div>
+      </div>
+      <div class="metric" onclick="filterDash('liv',this)">
+        <div class="metric-label">Vague / LIV</div>
+        <div class="metric-val" style="color:var(--amber)">891</div>
+        <div class="metric-sub">23.2% of total</div>
+      </div>
+      <div class="metric" onclick="filterDash('irr',this)">
+        <div class="metric-label">Irrelevant</div>
+        <div class="metric-val" style="color:var(--blue)">512</div>
+        <div class="metric-sub">13.3% of total</div>
+      </div>
+      <div class="metric" onclick="filterDash('dec',this)">
+        <div class="metric-label">Deceptive</div>
+        <div class="metric-val" style="color:var(--red)">335</div>
+        <div class="metric-sub">8.7% of total</div>
+      </div>
+    </div>
+
+    <div class="cols-2">
+      <div class="card">
+        <div class="card-title">Recent reviews</div>
+        <div class="filter-tabs" id="dash-ftabs" style="margin-bottom:10px;">
+          <button class="ftab active" onclick="setDashFilter('all',this)">All</button>
+          <button class="ftab" onclick="setDashFilter('auth',this)">Authentic</button>
+          <button class="ftab" onclick="setDashFilter('dec',this)">Deceptive</button>
+          <button class="ftab" onclick="setDashFilter('liv',this)">Vague</button>
+          <button class="ftab" onclick="setDashFilter('irr',this)">Irrelevant</button>
+        </div>
+        <div class="review-list" id="dash-review-list"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title">Review Volume by Platform</div>
+          <div class="bar-row" style="margin:0 0 8px;"><div class="bar-label" style="width:70px; display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EE4D2D;"></span>Shopee</div><div class="bar-track"><div class="bar-fill" style="width:61%;background:#EE4D2D"></div></div><div class="bar-count" style="width:40px;">2,343</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:70px; display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0F136D;"></span>Lazada</div><div class="bar-track"><div class="bar-fill" style="width:39%;background:#0F136D"></div></div><div class="bar-count" style="width:40px;">1,499</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Classification breakdown</div>
+          <div class="bar-row"><div class="bar-label">Authentic</div><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--teal)"></div></div><div class="bar-count">2104</div></div>
+          <div class="bar-row"><div class="bar-label">Vague</div><div class="bar-track"><div class="bar-fill" style="width:23%;background:var(--orange)"></div></div><div class="bar-count">891</div></div>
+          <div class="bar-row"><div class="bar-label">Irrelevant</div><div class="bar-track"><div class="bar-fill" style="width:13%;background:var(--cobalt)"></div></div><div class="bar-count">512</div></div>
+          <div class="bar-row"><div class="bar-label">Deceptive</div><div class="bar-track"><div class="bar-fill" style="width:9%;background:var(--coral)"></div></div><div class="bar-count">335</div></div>
+        </div>
+        <div class="card" id="dash-detail">
+          <div class="card-title">Review detail</div>
+          <div style="font-size:12px;color:var(--text3);">Click a review to see its analysis.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div id="page-upload" class="page">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Upload reviews</div>
+        <div class="page-sub">Add review data for AuthentiCheck to analyze</div>
+      </div>
+    </div>
+
+    <div class="cols-2">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- CSV Upload -->
+        <div class="card">
+          <div class="card-title">CSV file upload</div>
+          <div class="upload-zone" id="csv-zone" onclick="document.getElementById('csv-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropCSV(event)">
+            <i class="ti ti-file-spreadsheet" style="font-size:32px;margin-bottom:8px;display:block;color:var(--primary)"></i>
+            <div style="font-weight:500;color:var(--text2);margin-bottom:4px;">Drop CSV here or click to browse</div>
+            <div style="font-size:11px;">Required columns: review_text, star_rating, platform, product_name</div>
+          </div>
+          <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(this)">
+          <div id="csv-status" style="margin-top:8px;font-size:12px;"></div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="card">
+          <div class="card-title">Review images</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Upload customer-submitted product photos. These are used by M-CLIP for image-text consistency checking.</div>
+
+          <div class="upload-zone" id="img-zone" onclick="document.getElementById('img-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropImages(event)" style="padding:18px;">
+            <i class="ti ti-photo-up" style="font-size:28px;display:block;margin-bottom:6px;color:var(--primary)"></i>
+            <div style="font-weight:500;color:var(--text2);font-size:13px;">Drop images here or click to browse</div>
+            <div style="font-size:11px;margin-top:2px;">JPG, PNG, WEBP &middot; Multiple files supported</div>
+          </div>
+          <input type="file" id="img-input" accept="image/*" multiple style="display:none" onchange="handleImages(this)">
+
+          <div id="img-preview-grid" class="img-grid" style="margin-top:10px;"></div>
+          <div id="img-count" style="font-size:11px;color:var(--text3);margin-top:6px;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Single review test -->
+        <div class="card">
+          <div class="card-title">Test a single review</div>
+          <div class="section-label">Review text</div>
+          <textarea id="test-text" rows="3" placeholder="e.g. Ergonomic sa kamay at mabilis mag-connect ang bluetooth!"></textarea>
+
+          <div style="margin-top:10px;">
+            <div class="section-label">Review image (optional)</div>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <div id="single-img-preview" style="width:80px;height:80px;flex-shrink:0;">
+                <div class="img-placeholder" onclick="document.getElementById('single-img-input').click()">
+                  <i class="ti ti-photo-plus"></i>
+                  <span>Add photo</span>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <input type="file" id="single-img-input" accept="image/*" style="display:none" onchange="handleSingleImg(this)">
+                <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">This simulates what M-CLIP checks — whether the photo matches the review text.</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <div>
+                    <div class="section-label">Stars</div>
+                    <select id="test-stars">
+                      <option value="5">★★★★★ 5</option>
+                      <option value="4">★★★★☆ 4</option>
+                      <option value="3">★★★☆☆ 3</option>
+                      <option value="2">★★☆☆☆ 2</option>
+                      <option value="1">★☆☆☆☆ 1</option>
+                    </select>
+                  </div>
+                  <div>
+                    <div class="section-label">Platform</div>
+                    <select id="test-platform">
+                      <option>Shopee</option>
+                      <option>Lazada</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="classifyTest()">
+            <i class="ti ti-sparkles"></i> Classify this review
+          </button>
+          <div id="test-result" style="margin-top:12px;"></div>
+        </div>
+
+        <!-- Platform config -->
+        <div class="card">
+          <div class="card-title">Platform &amp; product settings</div>
+          <div class="section-label" style="margin-bottom:4px;">Product name</div>
+          <input type="text" id="product-name" value="Logitech MX Master 3S Wireless Mouse" style="margin-bottom:10px;">
+          <div class="section-label" style="margin-bottom:6px;">Platforms</div>
+          <div style="display:flex;gap:12px;font-size:13px;">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" checked> Shopee</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" checked> Lazada</label>
+          </div>
+          <button class="btn btn-primary" style="margin-top:12px;" onclick="fakeLoad()"><i class="ti ti-database-import"></i> Load sample dataset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLASSIFICATION -->
+  <div id="page-classify" class="page">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Classification results</div>
+        <div class="page-sub">Stage 1 — Review quality assessment</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline" onclick="showToast('Exported to CSV!')"><i class="ti ti-download"></i> Export</button>
+        <button class="btn btn-outline btn-sm" onclick="showToast('Refreshed!')"><i class="ti ti-refresh"></i></button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:12px 16px;">
+      <div class="filter-tabs" id="classify-tabs">
+        <button class="ftab active" onclick="setClassifyFilter('all',this)">All (3842)</button>
+        <button class="ftab" onclick="setClassifyFilter('auth',this)">Authentic (2104)</button>
+        <button class="ftab" onclick="setClassifyFilter('dec',this)">Deceptive (335)</button>
+        <button class="ftab" onclick="setClassifyFilter('liv',this)">Vague (891)</button>
+        <button class="ftab" onclick="setClassifyFilter('irr',this)">Irrelevant (512)</button>
+      </div>
+    </div>
+
+    <div class="cols-2">
+      <div class="card">
+        <div class="review-list" id="classify-list"></div>
+      </div>
+      <div class="card" id="classify-detail">
+        <div class="card-title">Review detail</div>
+        <div style="font-size:12px;color:var(--text3);">Select a review to inspect its scores.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTIMENT -->
+  <div id="page-sentiment" class="page">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Sentiment analysis (ABSA)</div>
+        <div class="page-sub">Stage 2 — Authentic reviews only (2,104 reviews)</div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Overall positive</div><div class="metric-val" style="color:#3B6D11">67%</div><div class="metric-sub">1,410 reviews</div></div>
+      <div class="metric"><div class="metric-label">Overall neutral</div><div class="metric-val" style="color:var(--text2)">22%</div><div class="metric-sub">463 reviews</div></div>
+      <div class="metric"><div class="metric-label">Overall negative</div><div class="metric-val" style="color:var(--red)">11%</div><div class="metric-sub">231 reviews</div></div>
+      <div class="metric"><div class="metric-label">Aspects detected</div><div class="metric-val" style="color:var(--primary)">8</div><div class="metric-sub">across all reviews</div></div>
+    </div>
+
+    <div class="cols-2">
+      <div class="card">
+        <div class="card-title">Aspect breakdown — click to explore</div>
+        <div id="absa-list"></div>
+      </div>
+      <div class="card" id="absa-detail">
+        <div class="card-title">Aspect detail</div>
+        <div style="font-size:12px;color:var(--text3);">Click an aspect on the left.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px; margin-bottom:14px;">
+      <div class="card-title">Platform Sentiment Comparison: Shopee vs Lazada</div>
+      <div class="cols-2">
+        <div>
+          <div style="font-weight:600; color:#EE4D2D; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EE4D2D;"></span>Shopee</div>
+          <div class="bar-row" style="margin:0 0 6px;"><div class="bar-label" style="width:60px;">Positive</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:#3B6D11"></div></div><div class="bar-count" style="width:30px;">72%</div></div>
+          <div class="bar-row" style="margin:0 0 6px;"><div class="bar-label" style="width:60px;">Neutral</div><div class="bar-track"><div class="bar-fill" style="width:19%;background:var(--text3)"></div></div><div class="bar-count" style="width:30px;">19%</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:60px;">Negative</div><div class="bar-track"><div class="bar-fill" style="width:9%;background:var(--red)"></div></div><div class="bar-count" style="width:30px;">9%</div></div>
+          <div style="font-size:11px; color:var(--text3); margin-top:8px;">Based on 1,250 authentic reviews</div>
+        </div>
+        <div>
+          <div style="font-weight:600; color:#0F136D; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0F136D;"></span>Lazada</div>
+          <div class="bar-row" style="margin:0 0 6px;"><div class="bar-label" style="width:60px;">Positive</div><div class="bar-track"><div class="bar-fill" style="width:61%;background:#3B6D11"></div></div><div class="bar-count" style="width:30px;">61%</div></div>
+          <div class="bar-row" style="margin:0 0 6px;"><div class="bar-label" style="width:60px;">Neutral</div><div class="bar-track"><div class="bar-fill" style="width:25%;background:var(--text3)"></div></div><div class="bar-count" style="width:30px;">25%</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:60px;">Negative</div><div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--red)"></div></div><div class="bar-count" style="width:30px;">14%</div></div>
+          <div style="font-size:11px; color:var(--text3); margin-top:8px;">Based on 854 authentic reviews</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Model performance comparison</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Accuracy</div>
+          <div class="bar-row" style="margin:0 0 4px;"><div class="bar-label" style="width:90px;font-size:11px;">AuthentiCheck</div><div class="bar-track"><div class="bar-fill" style="width:89%;background:var(--primary)"></div></div><div class="bar-count">89%</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:90px;font-size:11px;">Text-only</div><div class="bar-track"><div class="bar-fill" style="width:74%;background:var(--text3)"></div></div><div class="bar-count">74%</div></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">F1-score</div>
+          <div class="bar-row" style="margin:0 0 4px;"><div class="bar-label" style="width:90px;font-size:11px;">AuthentiCheck</div><div class="bar-track"><div class="bar-fill" style="width:87%;background:var(--primary)"></div></div><div class="bar-count">87%</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:90px;font-size:11px;">Text-only</div><div class="bar-track"><div class="bar-fill" style="width:71%;background:var(--text3)"></div></div><div class="bar-count">71%</div></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Precision</div>
+          <div class="bar-row" style="margin:0 0 4px;"><div class="bar-label" style="width:90px;font-size:11px;">AuthentiCheck</div><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--primary)"></div></div><div class="bar-count">88%</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:90px;font-size:11px;">Text-only</div><div class="bar-track"><div class="bar-fill" style="width:73%;background:var(--text3)"></div></div><div class="bar-count">73%</div></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Recall</div>
+          <div class="bar-row" style="margin:0 0 4px;"><div class="bar-label" style="width:90px;font-size:11px;">AuthentiCheck</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:var(--primary)"></div></div><div class="bar-count">86%</div></div>
+          <div class="bar-row" style="margin:0;"><div class="bar-label" style="width:90px;font-size:11px;">Text-only</div><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--text3)"></div></div><div class="bar-count">70%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="page-settings" class="page">
+    <div class="topbar">
+      <div class="page-title">Settings</div>
+    </div>
+    <div class="cols-2">
+      <div class="card">
+        <div class="card-title">Model configuration</div>
+        <div class="detail-row"><span class="detail-label">Text model</span><span class="chip">DOST-RoBERTa-tl-cased</span></div>
+        <div class="detail-row"><span class="detail-label">Image-text model</span><span class="chip">M-CLIP</span></div>
+        <div class="detail-row"><span class="detail-label">Classifier</span><span class="chip">XGBoost</span></div>
+        <div class="detail-row"><span class="detail-label">Sentiment (ABSA)</span><span class="chip">RoBERTa ABSA</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Data &amp; privacy</div>
+        <div class="detail-row"><span class="detail-label">Anonymize usernames</span><input type="checkbox" checked></div>
+        <div class="detail-row"><span class="detail-label">Store raw images</span><input type="checkbox"></div>
+        <div class="detail-row"><span class="detail-label">Academic use only</span><input type="checkbox" checked></div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-danger btn-sm" onclick="showToast('Dataset cleared!')"><i class="ti ti-trash"></i> Clear dataset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+</div><!-- end app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const reviews=[
+  {id:1,text:'Ergonomic sa kamay, smooth ang scroll wheel at maganda ang clicks. Worth it talaga para sa presyo.',stars:5,platform:'Shopee',label:'auth',clip:0.91,probs:[0.85, 0.05, 0.05, 0.05],sentiment:'Positive',note:'High p_auth, consistent image, matching 5★ rating'},
+  {id:2,text:'Panget ng mouse, hindi gumagana yung bluetooth agad nung pagbukas ko! Wag kayo umorder dito sayang pera.',stars:5,platform:'Lazada',label:'dec',clip:0.88,probs:[0.82, 0.08, 0.05, 0.05],sentiment:'—',note:'XGBoost detected extreme rating mismatch (5★ rating vs highly negative text)'},
+  {id:3,text:'Ang ganda ng pagkain doon sa restaurant malapit sa mall.',stars:5,platform:'Shopee',label:'irr',clip:0.09,probs:[0.05, 0.02, 0.92, 0.01],sentiment:'—',note:'High p_irr & low S_clip (0.09) — off-topic food review for a mouse'},
+  {id:4,text:'Okay. Good.',stars:4,platform:'Lazada',label:'liv',clip:0.77,probs:[0.05, 0.04, 0.10, 0.81],sentiment:'—',note:'High p_LIV probability — vague text, lacks informational value'},
+  {id:5,text:'Solid ang build quality, medyo mahal pero sulit. Battery life okay lang, sana type-C na.',stars:4,platform:'Shopee',label:'auth',clip:0.86,probs:[0.74, 0.11, 0.05, 0.10],sentiment:'Mixed',note:'Valid mixed sentiment review with consistent rating and image'},
+  {id:6,text:'Best mouse ever!!! 10/10 would recommend to everyone!!! I love this so much buy it now!!!!!',stars:5,platform:'Lazada',label:'dec',clip:0.12,probs:[0.20, 0.75, 0.03, 0.02],sentiment:'—',note:'High p_dec (artificially positive text) paired with unaligned image (S_clip 0.12)'},
+  {id:7,text:'Di ko pa nagagamit pero maganda packaging.',stars:5,platform:'Shopee',label:'liv',clip:0.79,probs:[0.15, 0.05, 0.12, 0.68],sentiment:'—',note:'High p_LIV — review only discusses packaging, no product experience'},
+  {id:8,text:'Sira ang box pagdating. Nagrereklamo na ko sa courier. Ref no. 28812.',stars:1,platform:'Lazada',label:'irr',clip:0.13,probs:[0.10, 0.03, 0.77, 0.10],sentiment:'—',note:'High p_irr — logistics/courier complaint, not a product review'},
+];
+
+const absa=[
+  {aspect:'Ergonomics',pos:312,neu:48,neg:21,samples:['Grabe ang ganda sa kamay, hindi nakakangawit kahit matagal gamitin.','Medyo malaki para sa maliit na kamay.','Sumasakit wrist ko after an hour, not recommended.']},
+  {aspect:'Connectivity / Bluetooth',pos:198,neu:61,neg:55,samples:['Mabilis mag-connect at stable ang connection!','Minsan nade-disconnect pero okay lang.','Laggy ang bluetooth, hindi magamit pang-games.']},
+  {aspect:'Battery life',pos:410,neu:90,neg:38,samples:['Isang charge lang umaabot ng ilang weeks!','Okay lang battery life, standard lang.','Mabilis maubos battery, kailangan lagi i-charge.']},
+  {aspect:'Price / value',pos:502,neu:72,neg:14,samples:['Worth it talaga sa presyo, premium feel no regrets!','Medyo mahal pero okay na rin.','Mas mahal kaysa sa expected, hindi sulit.']},
+  {aspect:'Build quality',pos:244,neu:55,neg:43,samples:['Solid ang build, hindi parang mumurahing plastic.','Plastic pero okay naman ang weight.','Ang nipis ng plastic material, parang madaling mabasag.']},
+  {aspect:'Scroll wheel',pos:287,neu:44,neg:29,samples:['Ang smooth ng infinite scroll! Super satisfying.','Okay naman ang scroll wheel.','Medyo maingay at magaspang yung scroll wheel.']},
+  {aspect:'Click feel / Buttons',pos:198,neu:82,neg:12,samples:['Silent clicks and very responsive side buttons!','Normal clicks, hindi silent.','Matigas i-click yung left button, nakakangawit.']},
+  {aspect:'Shipping / delivery',pos:155,neu:60,neg:24,samples:['Mabilis dumating, 2 days lang nandito na!','Standard shipping time.','Matagal dumating, umabot ng 2 weeks.']},
+];
+
+let dashFilter='all';
+let selectedDash=null;
+let classifyFilter='all';
+let selectedClassify=null;
+let uploadedImages=[];
+
+function lbl(l){return {auth:'auth',liv:'liv',irr:'irr',dec:'dec'}[l]||'auth';}
+function lblTxt(l){return {auth:'Authentic',liv:'Vague / LIV',irr:'Irrelevant',dec:'Deceptive'}[l]||l;}
+function stars(n){return '★'.repeat(n)+'☆'.repeat(5-n);}
+
+function renderDash(){
+  const f=dashFilter==='all'?reviews:reviews.filter(r=>r.label===dashFilter);
+  document.getElementById('dash-review-list').innerHTML=f.map(r=>`
+    <div class="rev ${selectedDash===r.id?'selected':''}" onclick="selectDash(${r.id})">
+      <div class="rev-meta">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="stars" style="font-size:12px;">${stars(r.stars)}</span>
+          <span style="font-size:11px;color:var(--text3);">${r.platform}</span>
+        </div>
+        <span class="badge ${lbl(r.label)}">${lblTxt(r.label)}</span>
+      </div>
+      <div class="rev-text">${r.text}</div>
+      ${r.note?`<div class="rev-note">${r.note}</div>`:''}
+    </div>`).join('');
+}
+
+function selectDash(id){
+  selectedDash=id; renderDash();
+  const r=reviews.find(x=>x.id===id);
+  document.getElementById('dash-detail').innerHTML=`
+    <div class="card-title">Review #${r.id}</div>
+    <div class="detail-row"><span class="detail-label">Classification</span><span class="badge ${lbl(r.label)}">${lblTxt(r.label)}</span></div>
+    <div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <span class="detail-label">DOST-RoBERTa Probabilities</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <span class="chip">p_auth: ${r.probs[0]}</span>
+        <span class="chip">p_dec: ${r.probs[1]}</span>
+        <span class="chip">p_irr: ${r.probs[2]}</span>
+        <span class="chip">p_liv: ${r.probs[3]}</span>
+      </div>
+    </div>
+    <div class="detail-row"><span class="detail-label">M-CLIP score</span><span class="chip">${r.clip} — ${r.clip>0.5?'consistent':'mismatch'}</span></div>
+    <div class="detail-row"><span class="detail-label">Star rating</span><span class="stars" style="font-size:13px;">${stars(r.stars)}</span></div>
+    <div class="detail-row"><span class="detail-label">Platform</span><span class="chip">${r.platform}</span></div>
+    <div class="detail-row"><span class="detail-label">Sentiment</span><span class="chip">${r.sentiment}</span></div>`;
+}
+
+function setDashFilter(f,el){
+  dashFilter=f; selectedDash=null;
+  document.querySelectorAll('#dash-ftabs .ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dash-detail').innerHTML='<div class="card-title">Review detail</div><div style="font-size:12px;color:var(--text3);">Click a review to see its analysis.</div>';
+  renderDash();
+}
+
+function filterDash(f,el){
+  document.querySelectorAll('#dash-metrics .metric').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+  dashFilter=f; selectedDash=null;
+  const map={all:0,auth:1,dec:2,liv:3,irr:4};
+  document.querySelectorAll('#dash-ftabs .ftab').forEach((t,i)=>t.classList.toggle('active',i===map[f]||(f==='all'&&i===0)));
+  document.getElementById('dash-detail').innerHTML='<div class="card-title">Review detail</div><div style="font-size:12px;color:var(--text3);">Click a review to see its analysis.</div>';
+  renderDash();
+}
+
+function renderClassify(){
+  const f=classifyFilter==='all'?reviews:reviews.filter(r=>r.label===classifyFilter);
+  document.getElementById('classify-list').innerHTML=f.map(r=>`
+    <div class="rev ${selectedClassify===r.id?'selected':''}" onclick="selectClassify(${r.id})">
+      <div class="rev-meta">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="stars" style="font-size:12px;">${stars(r.stars)}</span>
+          <span style="font-size:11px;color:var(--text3);">${r.platform}</span>
+          <span style="font-size:11px;color:var(--text3);">CLIP: ${r.clip}</span>
+        </div>
+        <span class="badge ${lbl(r.label)}">${lblTxt(r.label)}</span>
+      </div>
+      <div class="rev-text">${r.text}</div>
+      ${r.note?`<div class="rev-note">${r.note}</div>`:''}
+    </div>`).join('');
+}
+
+function selectClassify(id){
+  selectedClassify=id; renderClassify();
+  const r=reviews.find(x=>x.id===id);
+  document.getElementById('classify-detail').innerHTML=`
+    <div class="card-title">Review #${r.id} — full analysis</div>
+    <div class="detail-row"><span class="detail-label">Final classification</span><span class="badge ${lbl(r.label)}">${lblTxt(r.label)}</span></div>
+    <div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <span class="detail-label">DOST-RoBERTa Probabilities</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <span class="chip">p_auth: ${r.probs[0]}</span>
+        <span class="chip">p_dec: ${r.probs[1]}</span>
+        <span class="chip">p_irr: ${r.probs[2]}</span>
+        <span class="chip">p_liv: ${r.probs[3]}</span>
+      </div>
+    </div>
+    <div class="detail-row"><span class="detail-label">M-CLIP score</span><span class="chip">${r.clip}</span></div>
+    <div class="detail-row"><span class="detail-label">Star rating</span><span class="stars" style="font-size:13px;">${stars(r.stars)}</span></div>
+    <div class="detail-row"><span class="detail-label">Platform</span><span class="chip">${r.platform}</span></div>
+    <div class="detail-row"><span class="detail-label">Forwarded to ABSA</span><span style="font-size:12px;">${r.label==='auth'?'<span style="color:var(--green)">Yes</span>':'<span style="color:var(--red)">No — filtered out</span>'}</span></div>`;
+}
+
+function setClassifyFilter(f,el){
+  classifyFilter=f; selectedClassify=null;
+  document.querySelectorAll('#classify-tabs .ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('classify-detail').innerHTML='<div class="card-title">Review detail</div><div style="font-size:12px;color:var(--text3);">Select a review to inspect its scores.</div>';
+  renderClassify();
+}
+
+function renderABSA(){
+  document.getElementById('absa-list').innerHTML=absa.map((a,i)=>`
+    <div class="absa-row" onclick="showABSADetail(${i})">
+      <span>${a.aspect}</span>
+      <div class="pills">
+        <span class="pill pos">+${a.pos}</span>
+        <span class="pill neu">${a.neu}</span>
+        <span class="pill neg">-${a.neg}</span>
+      </div>
+    </div>`).join('');
+}
+
+function showABSADetail(i){
+  const a=absa[i];
+  const tot=a.pos+a.neu+a.neg;
+  document.getElementById('absa-detail').innerHTML=`
+    <div class="card-title">${a.aspect}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+      <div style="background:#EAF3DE;border-radius:var(--radius);padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:600;color:#27500A;">${Math.round(a.pos/tot*100)}%</div>
+        <div style="font-size:11px;color:#3B6D11;">Positive (${a.pos})</div>
+      </div>
+      <div style="background:#F1EFE8;border-radius:var(--radius);padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:600;color:#444441;">${Math.round(a.neu/tot*100)}%</div>
+        <div style="font-size:11px;color:#5F5E5A;">Neutral (${a.neu})</div>
+      </div>
+      <div style="background:var(--red-light);border-radius:var(--radius);padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:600;color:#791F1F;">${Math.round(a.neg/tot*100)}%</div>
+        <div style="font-size:11px;color:var(--red);">Negative (${a.neg})</div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Sample excerpts</div>
+    ${a.samples.map(s=>`<div style="font-size:12px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius);margin-bottom:6px;color:var(--text2);line-height:1.5;">"${s}"</div>`).join('')}`;
+}
+
+// Image handling
+function handleImages(input){
+  const files=Array.from(input.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      uploadedImages.push({name:f.name,url:e.target.result});
+      renderImgGrid();
+    };
+    reader.readAsDataURL(f);
+  });
+  input.value='';
+}
+
+function renderImgGrid(){
+  const grid=document.getElementById('img-preview-grid');
+  grid.innerHTML=uploadedImages.map((img,i)=>`
+    <div class="img-thumb-wrap">
+      <img class="img-thumb" src="${img.url}" alt="${img.name}">
+      <button class="img-remove" onclick="removeImg(${i})" title="Remove">&times;</button>
+    </div>`).join('')+
+    `<div class="img-placeholder" onclick="document.getElementById('img-input').click()">
+      <i class="ti ti-plus"></i><span>Add more</span>
+    </div>`;
+  document.getElementById('img-count').textContent=uploadedImages.length?`${uploadedImages.length} image${uploadedImages.length>1?'s':''} uploaded — these will be matched against review text using M-CLIP`:'';
+}
+
+function removeImg(i){
+  uploadedImages.splice(i,1);
+  if(uploadedImages.length===0){
+    document.getElementById('img-preview-grid').innerHTML='';
+    document.getElementById('img-count').textContent='';
+  } else renderImgGrid();
+}
+
+function handleSingleImg(input){
+  const f=input.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('single-img-preview').innerHTML=`
+      <div class="img-thumb-wrap" style="width:80px;height:80px;">
+        <img class="img-thumb" src="${e.target.result}" style="width:80px;height:80px;">
+        <button class="img-remove" onclick="clearSingleImg()">&times;</button>
+      </div>`;
+  };
+  reader.readAsDataURL(f);
+}
+
+function clearSingleImg(){
+  document.getElementById('single-img-input').value='';
+  document.getElementById('single-img-preview').innerHTML=`
+    <div class="img-placeholder" onclick="document.getElementById('single-img-input').click()">
+      <i class="ti ti-photo-plus"></i><span>Add photo</span>
+    </div>`;
+}
+
+function handleCSV(input){
+  const f=input.files[0]; if(!f) return;
+  const el=document.getElementById('csv-status');
+  el.style.color='var(--primary)';
+  el.textContent='Reading file…';
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const lines=reader.result.split('\n').filter(l=>l.trim()).length;
+    el.style.color='var(--green)';
+    el.textContent=`✓ ${f.name} loaded — ${lines-1} reviews found. Go to Classification to view.`;
+    setTimeout(()=>goPage('classify'),1800);
+  };
+  reader.readAsText(f);
+  input.value='';
+}
+
+function dropCSV(e){
+  e.preventDefault(); dragLeave(e);
+  const f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.csv')){
+    const fakeInput={files:[f]};
+    handleCSV(fakeInput);
+  }
+}
+
+function dropImages(e){
+  e.preventDefault(); dragLeave(e);
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{uploadedImages.push({name:f.name,url:ev.target.result});renderImgGrid();};
+    reader.readAsDataURL(f);
+  });
+}
+
+function dragOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');}
+function dragLeave(e){e.currentTarget.classList.remove('dragover');}
+
+function fakeLoad(){
+  const el=document.getElementById('csv-status')||{textContent:'',style:{}};
+  showToast('Sample dataset loaded!');
+  setTimeout(()=>goPage('dashboard'),800);
+}
+
+function classifyTest(){
+  const text=document.getElementById('test-text').value.trim();
+  const stars_n=parseInt(document.getElementById('test-stars').value);
+  const el=document.getElementById('test-result');
+  if(!text){el.innerHTML='<span style="color:var(--red);font-size:12px;">Please enter review text first.</span>';return;}
+  el.innerHTML='<span style="font-size:12px;color:var(--text3);">Analyzing…</span>';
+  setTimeout(()=>{
+    const words=text.split(/\s+/);
+    const hasImg=document.getElementById('single-img-input').files.length>0;
+    
+    // Simulate M-CLIP
+    let clip = hasImg ? parseFloat((0.75+Math.random()*0.2).toFixed(2)) : parseFloat((0.20+Math.random()*0.75).toFixed(2));
+
+    const hasNeg=/(sira|hindi|disappointing|broken|bad|pangit|ayaw|wala|mahal|late|mabagal)/i.test(text);
+    const hasPos=/(ganda|sulit|worth|okay|solid|maganda|maayos|mabilis|magaling|perfect|goods|best|love)/i.test(text);
+    
+    // Simulate DOST-RoBERTa textual probabilities
+    const probs = {auth: 0.10, dec: 0.10, irr: 0.10, liv: 0.10};
+    let text_pred = 'auth';
+    if (words.length<=4) text_pred = 'liv';
+    else if (/(delivery|seller|shipping|courier|ref no)/i.test(text)) text_pred = 'irr';
+    else if (/(best product ever|10\/10|buy it now|scam)/i.test(text)) text_pred = 'dec';
+    else text_pred = 'auth';
+    
+    probs[text_pred] = 0.65 + Math.random() * 0.15;
+    const remainder = 1 - probs[text_pred];
+    const others = Object.keys(probs).filter(k => k !== text_pred);
+    probs[others[0]] = parseFloat((remainder * 0.5).toFixed(2));
+    probs[others[1]] = parseFloat((remainder * 0.3).toFixed(2));
+    probs[others[2]] = parseFloat((1 - probs[text_pred] - probs[others[0]] - probs[others[1]]).toFixed(2));
+    probs[text_pred] = parseFloat(probs[text_pred].toFixed(2));
+
+    // Simulate XGBoost Decision Level Late Fusion
+    let final_label = text_pred;
+    let conflict_reason = '';
+    
+    const isNegativeText = hasNeg && !hasPos;
+    const isPositiveText = hasPos && !hasNeg;
+    
+    if ((isNegativeText && stars_n >= 4) || (isPositiveText && stars_n <= 2)) {
+      final_label = 'dec';
+      conflict_reason = 'XGBoost resolved conflict: extreme rating mismatch detected.';
+    } else if (text_pred === 'auth' && clip < 0.3) {
+      final_label = 'irr';
+      conflict_reason = 'XGBoost resolved conflict: unaligned image similarity score.';
+    }
+
+    const label = final_label;
+    const color={auth:'var(--green)',liv:'var(--amber)',irr:'var(--blue)',dec:'var(--red)'}[label];
+    el.innerHTML=`
+      <div style="border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-weight:600;font-size:13px;">Result</span>
+          <span class="badge ${label}">${lblTxt(label)}</span>
+        </div>
+        <div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+          <span class="detail-label">DOST-RoBERTa Probabilities (Text only)</span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <span class="chip">p_auth: ${probs.auth.toFixed(2)}</span>
+            <span class="chip">p_dec: ${probs.dec.toFixed(2)}</span>
+            <span class="chip">p_irr: ${probs.irr.toFixed(2)}</span>
+            <span class="chip">p_liv: ${probs.liv.toFixed(2)}</span>
+          </div>
+        </div>
+        <div class="detail-row"><span class="detail-label">M-CLIP score (simulated)</span><span class="chip">${clip.toFixed(2)} — ${clip>0.5?'image consistent':'possible mismatch'}</span></div>
+        <div class="detail-row"><span class="detail-label">Image uploaded</span><span class="chip">${hasImg?'Yes':'No'}</span></div>
+        <div class="detail-row"><span class="detail-label">Stars</span><span style="color:#BA7517;">${'★'.repeat(stars_n)+'☆'.repeat(5-stars_n)}</span></div>
+        ${conflict_reason ? `<div style="margin-top:10px;font-size:11px;color:var(--red);font-weight:500;">${conflict_reason}</div>` : ''}
+        <div style="margin-top:10px;font-size:12px;padding:8px 10px;border-radius:var(--radius);background:var(--surface2);color:var(--text2);">${{
+          auth:'This review appears genuine — it has sufficient informational value, consistent rating, and no multimodal mismatch.',
+          liv:'This review has high p_LIV probability. Very short, lacks product-specific detail, or lacks informational value.',
+          irr:'This review appears off-topic. High p_irr or low CLIP score suggests image-text mismatch or unrelated content.',
+          dec:'Possible deceptive review detected. High p_dec or extreme rating mismatch detected by XGBoost.'
+        }[label]}</div>
+      </div>`;
+  },900);
+}
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='classify'){renderClassify();}
+  if(id==='sentiment'){renderABSA();}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+renderDash();
+if(window.location.hash === '#upload') {
+  goPage('upload');
+}
+</script>
+</body>
+</html>
