@@ -43,7 +43,7 @@ class MultiModalDataset(Dataset):
         )
 
         # ---- IMAGE PROCESSING ----
-        image_files = str(row["image_paths"]).split(";")
+        image_files = [f.strip().strip('"') for f in str(row["image_paths"]).split(";")]
         images = self.load_images(image_files)
 
         return {
