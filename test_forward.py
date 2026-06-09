@@ -2,14 +2,16 @@ import torch
 import pandas as pd
 from transformers import RobertaTokenizer
 from torchvision import transforms
+from pathlib import Path
 
 from datasets.multimodal_dataset import MultiModalDataset
 from models.model import CLIPCACG
 
 # -------------------------
-# LOAD CSV
+# LOAD CSV (script-relative path)
 # -------------------------
-df = pd.read_csv("data/reviews.csv")
+BASE_DIR = Path(__file__).resolve().parent
+df = pd.read_csv(BASE_DIR / "data" / "reviews.csv")
 
 # -------------------------
 # TOKENIZER
@@ -31,7 +33,7 @@ dataset = MultiModalDataset(
     df=df,
     tokenizer=tokenizer,
     image_transform=image_transform,
-    img_dir="data/images"
+    img_dir=str(BASE_DIR / "data" / "images")
 )
 
 # -------------------------
