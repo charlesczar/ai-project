@@ -21,18 +21,19 @@ class CLIPCACG(nn.Module):
 
         self.classifier = nn.Linear(512, num_classes)
 
-    def forward(self, input_ids, attention_mask, images):
+    def forward(self, input_ids, attention_mask, images, image_mask):
 
         # TEXT
         t = self.text_encoder(input_ids, attention_mask)
         t = self.text_proj(t)
 
-        # IMAGE (multiple images → average)
+        # IMAGE (multiple images → masked average)
         B, N, C, H, W = images.shape
-        images = images.view(B * N, C, H, W)
+        i = self.image_encoder(images.view(B * N, C, H, W))
+        i = i.view(B, N, -1)  # (B, N, 2048)
 
-        i = self.image_encoder(images)
-        i = i.view(B, N, -1).mean(dim=1)  # average pooling
+        mask = image_mask.unsqueeze(-1).to(i.device)  # (B, N, 1)
+        i = (i * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)  # (B, 2048)
         i = self.image_proj(i)
 
         # CROSS ATTENTION

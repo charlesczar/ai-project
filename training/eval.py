@@ -11,9 +11,10 @@ def evaluate(model, dataloader, device):
 
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
-            image = batch["image"].to(device)
+            image = batch["images"].to(device)
+            image_mask = batch["image_mask"].to(device)
 
-            outputs = model(input_ids, attention_mask, image)
+            outputs = model(input_ids, attention_mask, image, image_mask)
 
             pred = outputs.argmax(dim=1).cpu().numpy()
 

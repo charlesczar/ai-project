@@ -50,12 +50,13 @@ sample = dataset[0]
 input_ids = sample["input_ids"].unsqueeze(0)
 attention_mask = sample["attention_mask"].unsqueeze(0)
 images = sample["images"].unsqueeze(0)
+image_mask = torch.ones(1, images.shape[1])  # all images are real
 
 # -------------------------
 # FORWARD PASS TEST
 # -------------------------
 with torch.no_grad():
-    output = model(input_ids, attention_mask, images)
+    output = model(input_ids, attention_mask, images, image_mask)
 
 print("Output shape:", output.shape)
 print("Output logits:", output)

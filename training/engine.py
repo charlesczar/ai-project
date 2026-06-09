@@ -15,12 +15,13 @@ class Trainer:
         for batch in dataloader:
             input_ids = batch["input_ids"].to(self.device)
             attention_mask = batch["attention_mask"].to(self.device)
-            image = batch["image"].to(self.device)
+            image = batch["images"].to(self.device)
+            image_mask = batch["image_mask"].to(self.device)
             labels = batch["label"].to(self.device)
 
             self.optimizer.zero_grad()
 
-            outputs = self.model(input_ids, attention_mask, image)
+            outputs = self.model(input_ids, attention_mask, image, image_mask)
 
             loss = self.criterion(outputs, labels)
 
