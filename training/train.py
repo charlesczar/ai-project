@@ -29,6 +29,9 @@ def main(df, config, base_dir):
         collate_fn=multimodal_collate_fn
     )
 
+    print("Train dataset rows (dataset.len):", len(dataset))
+    print("Train batches:", len(dataloader), " batch_size:", config["training"]["batch_size"])
+
     model = CLIPCACG(num_classes=3).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=config["training"]["lr"])
     trainer = Trainer(model, optimizer, device)
