@@ -190,7 +190,8 @@ if __name__ == "__main__":
     df["prob_neutral"] = [round(float(p[1]), 4) for p in all_probs]
     df["prob_positive"] = [round(float(p[2]), 4) for p in all_probs]
 
-    output_path = Path(args.output)
+    output_path = BASE_DIR / "outputs" / args.output
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
 
     print(f"\n[INFO] Predictions saved to: {output_path}")
