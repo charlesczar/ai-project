@@ -2,6 +2,31 @@ import torch
 from torch.utils.data import Dataset
 from PIL import Image
 
+
+def multimodal_collate_fn(batch):
+    max_n = max(item["images"].shape[0] for item in batch)
+
+    padded_images = []
+    image_masks = []
+    for item in batch:
+        n = item["images"].shape[0]
+        mask = torch.ones(n)
+        if n < max_n:
+            pad = torch.zeros(max_n - n, *item["images"].shape[1:])
+            padded_images.append(torch.cat([item["images"], pad], dim=0))
+            mask = torch.cat([mask, torch.zeros(max_n - n)])
+        else:
+            padded_images.append(item["images"])
+        image_masks.append(mask)
+
+    return {
+        "input_ids": torch.stack([item["input_ids"] for item in batch]),
+        "attention_mask": torch.stack([item["attention_mask"] for item in batch]),
+        "images": torch.stack(padded_images),
+        "image_mask": torch.stack(image_masks),  # (B, N_max) — 1 for real, 0 for padding
+        "label": torch.stack([item["label"] for item in batch]),
+    }
+
 class MultiModalDataset(Dataset):
     def __init__(self, df, tokenizer, image_transform, img_dir):
         self.df = df
