@@ -37,15 +37,18 @@ All of these are combined to predict the sentiment of each review.
 
 Run this command:
 - **python main.py**
-From here, the dataset is loaded. The model starts learning and the training progress is shown per **epoch**. The saved models appear in the following directory **outputs/checkpoints/**
+From here, the dataset is loaded. The model starts learning and the training progress is shown per **epoch**.
+The saved models appear in the following directory **outputs/checkpoints/**
 
 ## How to Evaluate the Model (with metrics)
 
 After training, test the model:
-**python evaluate.py --csv data/reviews.csv** (or whatever csv filename you used)
+
+   **python evaluate.py --csv data/reviews.csv** (or whatever csv filename you used)
 
 If you want to use a specific model:
-python evaluate.py --csv data/reviews.csv --checkpoint outputs/checkpoints/model_epoch_3.pt
+   
+   python evaluate.py --csv data/reviews.csv --checkpoint outputs/checkpoints/model_epoch_3.pt
 
 - replace reviews.csv with your csv filename
 - replace model_epoch_3.pt with the specific model you want to use
@@ -53,7 +56,8 @@ python evaluate.py --csv data/reviews.csv --checkpoint outputs/checkpoints/model
 ## How to Make Predictions
 
 To predict sentiment on a new data/dataset:
-**python predict.py --csv data/reviews.csv**
+
+   **python predict.py --csv data/reviews.csv**
 
 -replace reviews.csv with your csv filename 
 
