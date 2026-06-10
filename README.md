@@ -16,6 +16,8 @@ The system reads a csv file with the following columns:
 
 All of these are combined to predict the sentiment of each review.
 
+# IMPORTANT
+
 ## Installation
 1. Clone the repository
    - git clone <repository-link>
@@ -68,6 +70,7 @@ Dataset must contain:
 ## Notes
 - Images must be stored inside **data/images/** directory
 - Training must be done before evaluation or prediction
+- Other files such as debug_inspect.py and test_forward.py should be ignored. These files are only kept for documentation purposes only.
 
 ## Authors
 BS Computer Science Students
