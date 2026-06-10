@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from models.encoders.text_encoder import TextEncoder
@@ -22,27 +23,38 @@ class CLIPCACG(nn.Module):
         self.classifier = nn.Linear(512, num_classes)
 
     def forward(self, input_ids, attention_mask, images, image_mask):
-
-        # TEXT
+        # -----------------
+        # 1. TEXT PROCESSING
+        # -----------------
         t = self.text_encoder(input_ids, attention_mask)
         t = self.text_proj(t)
 
-        # IMAGE (multiple images → masked average)
+       # ------------------
+        # 2. IMAGE PROCESSING
+        # ------------------
         B, N, C, H, W = images.shape
+        
+        # Flatten and extract visual features
         i = self.image_encoder(images.view(B * N, C, H, W))
-        i = i.view(B, N, -1)  # (B, N, 2048)
+        i = i.view(B, N, -1)  # Shape: (B, N, 2048)
 
-        mask = image_mask.unsqueeze(-1).to(i.device)  # (B, N, 1)
-        i = (i * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)  # (B, 2048)
+        # The dataloader now supplies a perfect binary mask matching the tensor layout
+        mask = image_mask.to(i.device)  # Shape: (B, N, 1)
+
+        # Apply mask and compute the true average
+        i = i * mask 
+        i = i.sum(dim=1) / mask.sum(dim=1).clamp(min=1)  # Shape: (B, 2048)
         i = self.image_proj(i)
 
-        # CROSS ATTENTION
+        # -----------------------
+        # 3. CROSS ATTENTION & FUSION
+        # -----------------------
+        # Note: If your CrossAttention layer expects images to retain their sequence 
+        # dimension (B, N, D), move this step BEFORE the `.sum(dim=1)` pooling above!
         t, i = self.cross_attn(t, i)
 
-        # GATING
+        # GATING & CLASSIFIER
         f = self.gate(t, i)
-
-        # CLASSIFIER
         out = self.classifier(f)
 
         return out

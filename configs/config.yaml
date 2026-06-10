@@ -4,16 +4,15 @@ model:
   embedding_dim: 512
 
 training:
-  batch_size: 16
+  batch_size: 4
   lr: 0.0001
-  epochs: 10
-  num_workers: 2
+  epochs: 5
+  num_workers: 0
   device: cuda
 
 data:
   max_length: 128
   image_size: 224
-  val_split: 0.2
 
 output:
   checkpoint_dir: outputs/checkpoints
