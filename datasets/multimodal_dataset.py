@@ -67,3 +67,30 @@ class MultiModalDataset(Dataset):
             "images": images,  # multiple images tensor
             "label": torch.tensor(row["label"], dtype=torch.long)
         }
+
+
+def multimodal_collate_fn(batch):
+    input_ids = torch.stack([item["input_ids"] for item in batch])
+    attention_mask = torch.stack([item["attention_mask"] for item in batch])
+    labels = torch.stack([item["label"] for item in batch])
+
+    # Pad images to (B, N_max, C, H, W) and build a boolean mask
+    image_list = [item["images"] for item in batch]
+    max_n = max(imgs.shape[0] for imgs in image_list)
+    C, H, W = image_list[0].shape[1:]
+    B = len(image_list)
+
+    padded = torch.zeros(B, max_n, C, H, W)
+    mask = torch.zeros(B, max_n)
+    for i, imgs in enumerate(image_list):
+        n = imgs.shape[0]
+        padded[i, :n] = imgs
+        mask[i, :n] = 1.0
+
+    return {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "images": padded,
+        "image_mask": mask,
+        "label": labels,
+    }
